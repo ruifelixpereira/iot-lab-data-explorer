@@ -6,7 +6,7 @@ This lab aims to configure the Azure IoT Operations dataflow to ingest data into
 ![TODO: include diagram](docs/assets/architecture.png)
 
 
-Following the architectute above, the scenario is to ingest data from a MQTT broker into ADX. The data is expected to be in JSON format and the schema is defined as follows:
+Following the architecture above, the scenario is to ingest data from a MQTT broker into ADX. The data is expected to be in JSON format and the schema is defined as follows:
 
 ```json
 {
@@ -25,7 +25,7 @@ Create a new cluster or use an existing one (e.g., Dev/Test size) and make sure 
 
 ![alt text](docs/assets/ingestion.png)
 
-In the Permissions option, add the `AllDatabasesAdmin` role to you own user. This will simplify some of the operations you will need to execute later on.
+In the Permissions option, add the `AllDatabasesAdmin` role to your own user. This will simplify some of the operations you will need to execute later.
 
 ![alt text](docs/assets/left-hand-menu.png)
 
@@ -42,7 +42,7 @@ Enable streaming ingestion for the new database:
 .alter database ['iot'] policy streamingingestion enable
 ```
 
-You neeed to create a table hold the ingested data. Navigate to the ADX cluster, click on the "Query" button and execute the following KQL commands:
+You need to create a table to hold the ingested data. Navigate to the ADX cluster, click on the "Query" button and execute the following KQL commands:
 
 ```kql	
 .create table SensorData (
@@ -59,7 +59,7 @@ You neeed to create a table hold the ingested data. Navigate to the ADX cluster,
 
 Azure IoT Operations creates a managed identity automatically and assigns it to the Azure Arc-enabled Kubernetes cluster. We need to give the managed identity permission to write to the ADX database.
 
-The managed identity created has the same name of the AIO extension in the Arc-enabled cluster. In Azure portal, go to the Arc-connected Kubernetes cluster and select Settings > Extensions. In the extension list, find the name of your Azure IoT Operations extension and copy the name of the extension.
+The managed identity created has the same name as the AIO extension in the Arc-enabled cluster. In Azure portal, go to the Arc-connected Kubernetes cluster and select Settings > Extensions. In the extension list, find the name of your Azure IoT Operations extension and copy the name of the extension.
 
 ![alt text](docs/assets/extensions.png)
 
@@ -72,27 +72,29 @@ In your Azure Data Explorer, navigate to your database and under Overview select
 
 ## Step 2. Configure dataflow
 
-Use the provided file `adx-dataflow.bicep` to deploy all the necessary artifacts, namely:
+The provided file `adx-dataflow.bicep` deploys all the necessary artifacts, namely:
 - Message schema: that defines the structure of the incoming data.
 - ADX dataflow endpoint: that defines the connection to the ADX cluster.
 - ADX dataflow: that defines the flow of data from the MQTT broker to the ADX cluster.
 
-The bicep template can be deployed using the provided script `create-adx-dataflow.sh` that uses a .env file to setup accepts a json file with parameters. The file `settings.json` contains the parameters that you need to customize according to your environment.
+The bicep template can be deployed using the shell script `create-adx-dataflow.sh` that collects environment variables from a `.env` file. Copy the provided `.env.template` to a new file `.env` and customize it according to your environment.
 
-```json
-{
-    "customLocationName": "Custom location name",
-    "schemaRegistryName": "Schema registry name",
-    "aioInstanceName": "AIO instance name",
-    "adxClusterUri": "ADX cluster URI (e.g., https://xpto.region.kusto.windows.net)",
-    "adxDatabaseName": "ADX database name"
-}
+```
+resource_group="resource group name"
+location="location name"
+customLocationName="Custom location name"
+schemaRegistryName="Schema registry name"
+aioInstanceName="AIO instance name"
+mqttTopic="MQTT topic name"
+adxClusterUri="ADX cluster URI (e.g., https://xpto.region.kusto.windows.net)"
+adxDatabaseName="ADX database name"
+adxTableName="ADX database table name"
 ```
 
 After setting up the parameters, run the script to deploy the dataflow:
 
 ```bash
-./create-adx-dataflow.sh -c settings.json
+./create-adx-dataflow.sh
 ```
 
 You can check that you have the dataflow created by running the following command:
@@ -117,7 +119,7 @@ kubectl logs aio-dataflow-default-0 -n azure-iot-operations
 
 ![alt text](docs/assets/dataflow.png)
 
-If there are no errors you can start testing your new dataflow.
+If there are no errors, you can start testing your new dataflow.
 
 
 ## Step 3. Test the dataflow
@@ -137,20 +139,20 @@ mosquitto_pub -q 1 -t thermostats/temperature -d -V mqttv5 -m "{\"AssetId\":\"th
 
 ![alt text](docs/assets/publish.png)
 
-You can also subscribe to the topic to check if the message was ingested correctly:
+You can also subscribe to the topic to check if messages are being ingested correctly:
 
 ```bash
 # If using SAT auth
-mosquitto_sub --host aio-broker --port 18883 --topic "thermostats/xpto/temp" -v --debug --cafile /var/run/certs/ca.crt -D CONNECT authentication-method 'K8S-SAT' -D CONNECT authentication-data $(cat /var/run/secrets/tokens/broker-sat)
+mosquitto_sub --host aio-broker --port 18883 --topic "thermostats/temperature" -v --debug --cafile /var/run/certs/ca.crt -D CONNECT authentication-method 'K8S-SAT' -D CONNECT authentication-data $(cat /var/run/secrets/tokens/broker-sat)
 
 # Alternative if using x509 auth
-mosquitto_sub -t thermostats/xpto/telemetry/temperature -d -V mqttv5 -h aio-broker -p 18883 --cert /tmp/foo.crt --key /tmp/foo.key --cafile /tmp/chain_server_client.pem
+mosquitto_sub -t thermostats/temperature -d -V mqttv5 -h aio-broker -p 18883 --cert /tmp/foo.crt --key /tmp/foo.key --cafile /tmp/chain_server_client.pem
 ```
 
 ![alt text](docs/assets/subscribe.png)
 
 
-IF everything is working fine you should be able to see data being ingested into the ADX table:
+If everything is working fine, you should be able to see data being ingested on the ADX table. Use the following KQL query to check the data:
 
 ```kql
 SensorData
