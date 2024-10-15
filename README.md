@@ -2,7 +2,7 @@
 
 This lab aims to configure the Azure IoT Operations dataflow to ingest data into Azure Data Explorer (ADX). It is based on the [official documentation](https://learn.microsoft.com/en-us/azure/iot-operations/connect-to-cloud/howto-configure-adx-endpoint).
 
-![arch diagram](docs/assets/architecture.png)
+![arch diagram](docs/assets/scenario-arch.png)
 
 Following the architecture above, the scenario is to ingest data from a MQTT topic into an ADX database table. The data is expected to be in JSON format and the schema is defined as follows:
 
