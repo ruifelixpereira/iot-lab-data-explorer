@@ -2,11 +2,9 @@
 
 This lab aims to configure the Azure IoT Operations dataflow to ingest data into Azure Data Explorer (ADX). It is based on the [official documentation](https://learn.microsoft.com/en-us/azure/iot-operations/connect-to-cloud/howto-configure-adx-endpoint).
 
+![arch diagram](docs/assets/architecture.png)
 
-![TODO: include diagram](docs/assets/architecture.png)
-
-
-Following the architecture above, the scenario is to ingest data from a MQTT broker into ADX. The data is expected to be in JSON format and the schema is defined as follows:
+Following the architecture above, the scenario is to ingest data from a MQTT topic into an ADX database table. The data is expected to be in JSON format and the schema is defined as follows:
 
 ```json
 {
@@ -72,6 +70,8 @@ In your Azure Data Explorer, navigate to your database and under Overview select
 
 ## Step 2. Configure dataflow
 
+### Configure and deploy the dataflow
+
 The provided file `adx-dataflow.bicep` deploys all the necessary artifacts, namely:
 - Message schema: that defines the structure of the incoming data.
 - ADX dataflow endpoint: that defines the connection to the ADX cluster.
@@ -96,6 +96,8 @@ After setting up the parameters, run the script to deploy the dataflow:
 ```bash
 ./create-adx-dataflow.sh
 ```
+
+### Validate the deployment
 
 You can check that you have the dataflow created by running the following command:
 
@@ -124,6 +126,8 @@ If there are no errors, you can start testing your new dataflow.
 
 ## Step 3. Test the dataflow
 
+### Publish messges to the MQTT topic
+
 For testing we need to ingest data into the MQTT topic `thermostats/temperature`. You can use the provided `mosquitto_pub` command to publish a message to the broker:
 
 ```bash
@@ -151,6 +155,7 @@ mosquitto_sub -t thermostats/temperature -d -V mqttv5 -h aio-broker -p 18883 --c
 
 ![alt text](docs/assets/subscribe.png)
 
+### Check the data in ADX
 
 If everything is working fine, you should be able to see data being ingested on the ADX table. Use the following KQL query to check the data:
 
