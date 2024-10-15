@@ -13,11 +13,10 @@ var opcuaSchemaContent = '''
 }
 '''
 
-// Parameters
+// Parameters AIO
 param customLocationName string = 'aio-cl'
 param defaultDataflowEndpointName string = 'default'
 param defaultDataflowProfileName string = 'default'
-param schemaRegistryName string = 'aiosreg'
 param aioInstanceName string = 'aio-ops-instance'
 
 // Source MQTT topic
@@ -27,6 +26,10 @@ param mqttTopic string = 'thermostats/temperature'
 param adxClusterUri string = 'https://iot-ts.westus.kusto.windows.net'
 param adxDatabaseName string = 'iot'
 param adxTableName string = 'SensorData'
+
+// Schema Registry
+param schemaRegistryResourceGroup string = 'iot-lab'
+param schemaRegistryName string = 'aiosreg'
 
 // Schema
 param opcuaSchemaName string = 'sensor-data-delta'
@@ -51,27 +54,15 @@ resource defaultDataflowProfile 'Microsoft.IoTOperations/instances/dataflowProfi
   name: defaultDataflowProfileName
 }
 
-resource schemaRegistry 'Microsoft.DeviceRegistry/schemaRegistries@2024-09-01-preview' existing = {
-  name: schemaRegistryName
-}
-
-resource opcSchema 'Microsoft.DeviceRegistry/schemaRegistries/schemas@2024-09-01-preview' = {
-  parent: schemaRegistry
-  name: opcuaSchemaName
-  properties: {
-    displayName: 'Sensor Temperature Custom Delta Schema'
-    description: 'This is a custom delta Schema'
-    format: 'Delta/1.0'
-    schemaType: 'MessageSchema'
-  }
-}
-
-resource opcuaSchemaInstance 'Microsoft.DeviceRegistry/schemaRegistries/schemas/schemaVersions@2024-09-01-preview' = {
-  parent: opcSchema
-  name: opcuaSchemaVer
-  properties: {
-    description: 'Schema version'
-    schemaContent: opcuaSchemaContent
+// Schema
+module schemaModule './modules/schema-registry.bicep' = {
+  name: 'schemaDeploy'
+  scope: resourceGroup(schemaRegistryResourceGroup)
+  params: {
+    schemaRegistryName: schemaRegistryName
+    opcuaSchemaName: opcuaSchemaName
+    opcuaSchemaVer: opcuaSchemaVer
+    opcuaSchemaContent: opcuaSchemaContent
   }
 }
 

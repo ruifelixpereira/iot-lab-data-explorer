@@ -8,6 +8,7 @@ required_vars=(
     "resource_group"
     "location"
     "customLocationName"
+    "schemaRegistryResourceGroup"
     "schemaRegistryName"
     "aioInstanceName"
     "adxClusterUri"
@@ -68,6 +69,7 @@ az deployment group create \
       --resource-group $resource_group \
       --template-file ./adx-dataflow.bicep \
       --parameters customLocationName=$customLocationName \
+      --parameters schemaRegistryResourceGroup=$schemaRegistryResourceGroup \
       --parameters schemaRegistryName=$schemaRegistryName \
       --parameters aioInstanceName=$aioInstanceName \
       --parameters mqttTopic=$mqttTopic \

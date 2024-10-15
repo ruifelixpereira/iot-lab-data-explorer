@@ -83,6 +83,7 @@ The bicep template can be deployed using the shell script `create-adx-dataflow.s
 resource_group="resource group name"
 location="location name"
 customLocationName="Custom location name"
+schemaRegistryResourceGroup="Schema registry resource group name"
 schemaRegistryName="Schema registry name"
 aioInstanceName="AIO instance name"
 mqttTopic="MQTT topic name"
