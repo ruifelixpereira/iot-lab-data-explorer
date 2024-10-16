@@ -74,7 +74,7 @@ az deployment group create \
       --parameters aioInstanceName=$aioInstanceName \
       --parameters mqttTopic=$mqttTopic \
       --parameters adxDatabaseName=$adxDatabaseName \
-      --parameters adxTableName=$adxDatabaseName \
+      --parameters adxTableName=$adxTableName \
       --parameters adxClusterUri="${adxClusterUri}"
 
 exit 0

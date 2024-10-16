@@ -127,7 +127,7 @@ If there are no errors, you can start testing your new dataflow.
 
 ## Step 3. Test the dataflow
 
-### Publish messges to the MQTT topic
+### Publish messages to the MQTT topic
 
 For testing we need to ingest data into the MQTT topic `thermostats/temperature`. You can use the provided `mosquitto_pub` command to publish a message to the broker:
 
